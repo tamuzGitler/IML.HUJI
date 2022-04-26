@@ -3,7 +3,7 @@ from typing import NoReturn
 from ...base import BaseEstimator
 import numpy as np
 from numpy.linalg import pinv
-
+from ...metrics  import loss_functions
 
 class LinearRegression(BaseEstimator):
     """
@@ -49,7 +49,16 @@ class LinearRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        raise NotImplementedError()
+
+        if self.include_intercept_: #  Should fitted model include an intercept
+            X = np.c_[np.ones(X.shape[0]), X]
+
+            # X = np.c_(np.ones(X.shape[0]), X)
+            self.coefs_ = pinv(X) @ y #w=X_Dagger * y
+        else:
+            self.coefs_ = pinv(X) @ y
+
+
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -65,7 +74,9 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        if self.include_intercept_: #  Should fitted model include an intercept
+            X = np.c_[np.ones(X.shape[0]), X]
+        return X @ self.coefs_.T
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -84,4 +95,6 @@ class LinearRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        raise NotImplementedError()
+        y_pred = self._predict(X)
+        mse = loss_functions.mean_square_error(y , y_pred)
+        return mse

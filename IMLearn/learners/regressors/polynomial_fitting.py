@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import NoReturn
-from . import LinearRegression
 from ...base import BaseEstimator
 import numpy as np
+from IMLearn.learners.regressors import LinearRegression
 
 
 class PolynomialFitting(BaseEstimator):
@@ -19,7 +19,8 @@ class PolynomialFitting(BaseEstimator):
             Degree of polynomial to fit
         """
         super().__init__()
-        raise NotImplementedError()
+        self.deg_= k
+        self.model_ = LinearRegression(False) #false - intercept
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -33,7 +34,10 @@ class PolynomialFitting(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+
+        vandermonde_matrix = self.__transform(X)
+        self.model_.fit(vandermonde_matrix, y)
+
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -49,7 +53,10 @@ class PolynomialFitting(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        vandermonde_matrix = self.__transform(X)
+        y_pred = self.model_.predict(vandermonde_matrix)
+        return y_pred
+
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -68,8 +75,12 @@ class PolynomialFitting(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        raise NotImplementedError()
+        vandermonde_matrix = self.__transform(X)
 
+        mse = self.model_.loss(vandermonde_matrix, y)
+        return mse
+
+        # return error
     def __transform(self, X: np.ndarray) -> np.ndarray:
         """
         Transform given input according to the univariate polynomial transformation
@@ -83,4 +94,6 @@ class PolynomialFitting(BaseEstimator):
         transformed: ndarray of shape (n_samples, k+1)
             Vandermonde matrix of given samples up to degree k
         """
-        raise NotImplementedError()
+
+        vandermonde_matrix = np.vander(X,  N= self.deg_ + 1 , increasing=True) #increasing for reeordering
+        return vandermonde_matrix
